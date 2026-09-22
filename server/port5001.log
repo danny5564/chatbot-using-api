@@ -1,0 +1,21 @@
+ChatFlow server running on port 5001
+Making request to KIE API...
+KIE API response status: 200
+KIE API response data: {
+  "code": 401,
+  "msg": "Unauthorized – Authentication failed. Please check that your Authorization and Content-Type headers are correctly set."
+}
+Checking for reply in data...
+No reply found in output, checking alternative fields
+Alternative reply: 
+No reply found anywhere, returning default message
+Making request to KIE API...
+KIE API response status: 200
+KIE API response data: {
+  "code": 401,
+  "msg": "Unauthorized – Authentication failed. Please check that your Authorization and Content-Type headers are correctly set."
+}
+Checking for reply in data...
+No reply found in output, checking alternative fields
+Alternative reply: 
+No reply found anywhere, returning default message

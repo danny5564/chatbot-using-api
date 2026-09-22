@@ -1,0 +1,109 @@
+const KIE_API_URL = 'https://api.kie.ai/codex/v1/responses';
+
+async function sendMessage(userMessage, history = []) {
+  const apiKey = process.env.KIE_API_KEY;
+
+  if (!apiKey || apiKey === 'your_kie_api_key_here') {
+    const err = new Error('API key not configured');
+    err.status = 500;
+    err.userMessage = 'The AI service is not configured. Please set your API key.';
+    throw err;
+  }
+
+  const input = [];
+
+  for (const msg of history) {
+    input.push({
+      role: msg.role,
+      content: [{ type: 'input_text', text: msg.content }],
+    });
+  }
+
+  input.push({
+    role: 'user',
+    content: [{ type: 'input_text', text: userMessage }],
+  });
+
+  let response;
+  try {
+    console.log('Making request to KIE API...');
+    response = await fetch(KIE_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-6-astra',
+        input,
+        stream: false,
+      }),
+    });
+    console.log('KIE API response status:', response.status);
+  } catch (networkErr) {
+    const err = new Error('Network error');
+    err.status = 502;
+    err.userMessage = 'Could not connect to the AI service. Please check your connection.';
+    throw err;
+  }
+
+  if (!response.ok) {
+    const status = response.status;
+    const err = new Error(`KIE API error: ${status}`);
+    err.status = status;
+
+    switch (status) {
+      case 400:
+        err.userMessage = 'Invalid request. Please try rephrasing your message.';
+        break;
+      case 401:
+        err.userMessage = 'Authentication failed. Please check your API key.';
+        break;
+      case 429:
+        err.userMessage = 'Too many requests. Please wait a moment and try again.';
+        break;
+      default:
+        err.userMessage = 'Something went wrong while connecting. Please try again.';
+    }
+
+    throw err;
+  }
+
+  const data = await response.json();
+  console.log('KIE API response data:', JSON.stringify(data, null, 2));
+  console.log('Checking for reply in data...');
+
+  let reply = '';
+
+  if (data.output && Array.isArray(data.output)) {
+    console.log('Found output array with', data.output.length, 'items');
+    for (const item of data.output) {
+      console.log('Processing output item:', JSON.stringify(item));
+      if (item.type === 'message' && Array.isArray(item.content)) {
+        console.log('Found message with content array');
+        for (const block of item.content) {
+          console.log('Processing content block:', JSON.stringify(block));
+          if (block.type === 'output_text') {
+            reply += block.text;
+            console.log('Found output_text, reply so far:', reply);
+          }
+        }
+      }
+    }
+  }
+
+  if (!reply) {
+    console.log('No reply found in output, checking alternative fields');
+    reply = data.output_text || data.choices?.[0]?.message?.content || '';
+    console.log('Alternative reply:', reply);
+  }
+
+  if (!reply) {
+    console.log('No reply found anywhere, returning default message');
+    reply = 'I received your message but could not generate a response. Please try again.';
+  }
+
+  return reply;
+}
+
+module.exports = { sendMessage };
