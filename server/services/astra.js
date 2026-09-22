@@ -1,6 +1,6 @@
 // Configuration from environment variables with fallbacks
-const EXPERIENTIAL_API_URL = process.env.EXPERIENTIAL_API_URL || 'https://platform.experientiallabs.ai/api/v1/chat/completions';
-const EXPERIENTIAL_MODEL = process.env.EXPERIENTIAL_MODEL || 'gpt-3.5-turbo';
+const EXPERIENTIAL_API_URL = process.env.EXPERIENTIAL_API_URL || 'https://api.experientiallabs.ai/v1/chat/completions';
+const EXPERIENTIAL_MODEL = process.env.EXPERIENTIAL_MODEL || 'gpt-6-luna';
 
 async function sendMessage(userMessage, history = []) {
   const apiKey = process.env.EXPERIENTIAL_API_KEY;
